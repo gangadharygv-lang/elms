@@ -1,0 +1,17 @@
+target/
+.metadata/
+.recommenders/
+*.class
+*.war
+*.ear
+*.log
+
+# Local IDE/runtime noise
+.idea/
+*.iml
+
+# Local database credentials are edited per machine.
+src/main/resources/db.properties
+
+# Extracted helper text from the report, not source code.
+ELMS_Final_Project_Report_extracted.txt
