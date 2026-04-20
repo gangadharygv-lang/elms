@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LeaveRequestDAO {
+    private final AuditLogDAO auditLogDAO = new AuditLogDAO();
+
     public int submitRequest(LeaveRequest request) throws SQLException {
         String sql = "INSERT INTO leave_requests(user_id, leave_type_id, start_date, end_date, "
                 + "duration_days, session, reason, attachment_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -106,7 +108,29 @@ public class LeaveRequestDAO {
         }
     }
 
+    public void cancelPending(int requestId, int userId, String ipAddress) throws SQLException {
+        String sql = "UPDATE leave_requests SET status = 'CANCELLED', actioned_on = CURRENT_TIMESTAMP "
+                + "WHERE request_id = ? AND user_id = ? AND status = 'PENDING'";
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, requestId);
+                ps.setInt(2, userId);
+                if (ps.executeUpdate() == 1) {
+                    auditLogDAO.log(conn, "LEAVE_REQUEST", requestId, "CANCELLED", userId,
+                            "PENDING", "CANCELLED", ipAddress);
+                }
+            }
+            conn.commit();
+        }
+    }
+
     public void approveOrReject(int requestId, int managerId, String action, String remarks) throws SQLException {
+        approveOrReject(requestId, managerId, action, remarks, null);
+    }
+
+    public void approveOrReject(int requestId, int managerId, String action, String remarks, String ipAddress)
+            throws SQLException {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
@@ -145,6 +169,8 @@ public class LeaveRequestDAO {
                 }
             }
 
+            auditLogDAO.log(conn, "LEAVE_REQUEST", requestId, status, managerId,
+                    "PENDING", status + " | remarks=" + remarks, ipAddress);
             conn.commit();
         } catch (SQLException e) {
             if (conn != null) {

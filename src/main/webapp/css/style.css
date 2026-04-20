@@ -117,11 +117,25 @@ small,
 }
 
 .cards,
-.analytics-grid {
+.analytics-grid,
+.chart-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-bottom: 28px;
+}
+
+.chart-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.chart-panel {
+  min-height: 320px;
+}
+
+.chart-panel canvas {
+  width: 100%;
+  height: 240px;
 }
 
 .card,
@@ -266,6 +280,11 @@ th {
 
 .decision {
   min-width: 260px;
+}
+
+.compact-edit {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  min-width: 520px;
 }
 
 .user-form {

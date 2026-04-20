@@ -38,7 +38,7 @@ public class ApprovalServlet extends HttpServlet {
         try {
             int requestId = Integer.parseInt(req.getParameter("requestId"));
             String action = req.getParameter("action");
-            requestDAO.approveOrReject(requestId, user.getUserId(), action, remarks.trim());
+            requestDAO.approveOrReject(requestId, user.getUserId(), action, remarks.trim(), req.getRemoteAddr());
             res.sendRedirect(req.getContextPath() + "/manager/approvals?success=updated");
         } catch (Exception e) {
             throw new ServletException(e);

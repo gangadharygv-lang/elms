@@ -96,6 +96,41 @@ public class UserDAO {
         }
     }
 
+    public void updateBasic(User user) throws SQLException {
+        String sql = "UPDATE users SET employee_code = ?, full_name = ?, email = ?, role = ?, is_active = ? "
+                + "WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getEmployeeCode());
+            ps.setString(2, user.getFullName());
+            ps.setString(3, user.getEmail());
+            ps.setString(4, user.getRole().name());
+            ps.setBoolean(5, user.isActive());
+            ps.setInt(6, user.getUserId());
+            ps.executeUpdate();
+        }
+    }
+
+    public void updatePassword(int userId, String passwordHash) throws SQLException {
+        String sql = "UPDATE users SET password_hash = ? WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, passwordHash);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void setActive(int userId, boolean active) throws SQLException {
+        String sql = "UPDATE users SET is_active = ? WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, active);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
     private User mapRow(ResultSet rs) throws SQLException {
         User u = new User();
         u.setUserId(rs.getInt("user_id"));

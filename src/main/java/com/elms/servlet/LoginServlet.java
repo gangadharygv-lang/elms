@@ -1,5 +1,6 @@
 package com.elms.servlet;
 
+import com.elms.dao.AuditLogDAO;
 import com.elms.dao.UserDAO;
 import com.elms.model.User;
 import com.elms.util.PasswordUtil;
@@ -15,6 +16,7 @@ import java.io.IOException;
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
     private final UserDAO userDAO = new UserDAO();
+    private final AuditLogDAO auditLogDAO = new AuditLogDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res)
@@ -54,6 +56,8 @@ public class LoginServlet extends HttpServlet {
             HttpSession session = req.getSession(true);
             session.setAttribute("user", user);
             session.setMaxInactiveInterval(30 * 60);
+            auditLogDAO.log("USER", user.getUserId(), "LOGIN", user.getUserId(),
+                    null, "Successful login", req.getRemoteAddr());
             res.sendRedirect(req.getContextPath() + "/dashboard");
         } catch (Exception e) {
             req.setAttribute("error", "System error: " + e.getMessage());

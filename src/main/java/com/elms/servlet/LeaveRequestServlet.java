@@ -1,5 +1,6 @@
 package com.elms.servlet;
 
+import com.elms.dao.AuditLogDAO;
 import com.elms.dao.HolidayDAO;
 import com.elms.dao.LeaveBalanceDAO;
 import com.elms.dao.LeaveRequestDAO;
@@ -31,6 +32,7 @@ public class LeaveRequestServlet extends HttpServlet {
     private final LeaveBalanceDAO balanceDAO = new LeaveBalanceDAO();
     private final HolidayDAO holidayDAO = new HolidayDAO();
     private final LeaveRequestDAO requestDAO = new LeaveRequestDAO();
+    private final AuditLogDAO auditLogDAO = new AuditLogDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res)
@@ -101,7 +103,9 @@ public class LeaveRequestServlet extends HttpServlet {
             leave.setSession(LeaveRequest.Session.valueOf(session));
             leave.setReason(reason);
             leave.setAttachmentPath(attachmentPath);
-            requestDAO.submitRequest(leave);
+            int requestId = requestDAO.submitRequest(leave);
+            auditLogDAO.log("LEAVE_REQUEST", requestId, "SUBMITTED", user.getUserId(),
+                    null, "duration=" + duration + ", typeId=" + typeId, req.getRemoteAddr());
             res.sendRedirect(req.getContextPath() + "/dashboard?success=leave-submitted");
         } catch (Exception e) {
             throw new ServletException(e);

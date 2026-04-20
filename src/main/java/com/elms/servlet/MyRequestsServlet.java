@@ -32,7 +32,7 @@ public class MyRequestsServlet extends HttpServlet {
         User user = (User) req.getSession().getAttribute("user");
         try {
             int requestId = Integer.parseInt(req.getParameter("requestId"));
-            requestDAO.cancelPending(requestId, user.getUserId());
+            requestDAO.cancelPending(requestId, user.getUserId(), req.getRemoteAddr());
             res.sendRedirect(req.getContextPath() + "/leave/my-requests?success=cancelled");
         } catch (Exception e) {
             throw new ServletException(e);
