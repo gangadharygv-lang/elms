@@ -14,10 +14,31 @@
               style="font-size:.7rem;letter-spacing:.04em;">
             ${sessionScope.user.role}
         </span>
-        <span>${sessionScope.user.fullName}</span>
-        <a href="${pageContext.request.contextPath}/logout" class="btn btn-light btn-sm">
-            Logout
-        </a>
+
+        <%-- User dropdown — Profile + Logout --%>
+        <div class="dropdown">
+            <a href="#"
+               class="text-white text-decoration-none dropdown-toggle"
+               id="userMenuToggle"
+               data-bs-toggle="dropdown"
+               aria-expanded="false">
+                ${sessionScope.user.fullName}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuToggle">
+                <li>
+                    <a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
+                        &#128100;&nbsp; My Profile
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"/></li>
+                <li>
+                    <a class="dropdown-item text-danger"
+                       href="${pageContext.request.contextPath}/logout">
+                        &#128274;&nbsp; Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 </nav>
 

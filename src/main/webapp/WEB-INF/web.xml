@@ -22,6 +22,8 @@
     <url-pattern>/leave/*</url-pattern>
     <url-pattern>/manager/*</url-pattern>
     <url-pattern>/admin/*</url-pattern>
+    <!-- ✅ NEW: protect the profile page for all logged-in users -->
+    <url-pattern>/profile</url-pattern>
   </filter-mapping>
 
   <welcome-file-list>
