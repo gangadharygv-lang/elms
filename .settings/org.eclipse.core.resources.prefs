@@ -1,6 +1,7 @@
 eclipse.preferences.version=1
 encoding//src/main/java=UTF-8
 encoding//src/main/resources=UTF-8
+encoding//src/main/webapp/views/common/topbar.jsp=UTF-8
 encoding//src/main/webapp/views/employee/apply-leave.jsp=UTF-8
 encoding//src/main/webapp/views/employee/dashboard.jsp=UTF-8
 encoding//src/main/webapp/views/employee/my-leaves.jsp=UTF-8
