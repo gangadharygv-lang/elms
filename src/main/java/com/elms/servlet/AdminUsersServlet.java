@@ -1,6 +1,7 @@
 package com.elms.servlet;
 
 import com.elms.dao.AuditLogDAO;
+import com.elms.dao.LeaveBalanceDAO;
 import com.elms.dao.UserDAO;
 import com.elms.model.User;
 import com.elms.util.PasswordUtil;
@@ -57,6 +58,8 @@ public class AdminUsersServlet extends HttpServlet {
         user.setPasswordHash(PasswordUtil.sha256(req.getParameter("password")));
         user.setRole(User.Role.valueOf(req.getParameter("role")));
         int userId = userDAO.create(user);
+        LeaveBalanceDAO leaveBalanceDAO = new LeaveBalanceDAO();
+        leaveBalanceDAO.initializeDefaultBalances(userId);
         auditLogDAO.log("USER", userId, "CREATED", admin.getUserId(),
                 null, user.getEmail() + " | role=" + user.getRole(), req.getRemoteAddr());
     }
