@@ -68,4 +68,27 @@ public class LeaveBalanceDAO {
         balance.setLeaveTypeCode(rs.getString("type_code"));
         return balance;
     }
+    public void initializeDefaultBalances(int userId) throws SQLException {
+        String leaveTypeSql = "SELECT type_id, max_days_per_year FROM leave_types WHERE is_active = TRUE";
+        String insertSql = "INSERT INTO leave_balances (user_id, leave_type_id, year, total_entitled, days_remaining) VALUES (?, ?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ltStmt = conn.prepareStatement(leaveTypeSql);
+             ResultSet rs = ltStmt.executeQuery()) {
+
+            while (rs.next()) {
+                int leaveTypeId = rs.getInt("type_id");
+                int maxDays = rs.getInt("max_days_per_year");
+
+                try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                    insertStmt.setInt(1, userId);
+                    insertStmt.setInt(2, leaveTypeId);
+                    insertStmt.setInt(3, java.time.Year.now().getValue());
+                    insertStmt.setInt(4, maxDays);
+                    insertStmt.setBigDecimal(5, new java.math.BigDecimal(maxDays));
+                    insertStmt.executeUpdate();
+                }
+            }
+        }
+    }
 }

@@ -2,17 +2,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>404 - Not Found</title>
+    <title>403 - Access Denied</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 
 <main class="page">
 
-    <h1>404</h1>
-    <h2>Page Not Found</h2>
+    <h1>403</h1>
+    <h2>Access Denied</h2>
 
-    <p>The page you are looking for does not exist.</p>
+    <p>You are not authorized to access this page.</p>
 
     <a href="${pageContext.request.contextPath}/dashboard">Go to Dashboard</a>
 
