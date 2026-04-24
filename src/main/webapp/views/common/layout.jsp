@@ -3,6 +3,7 @@
 <html>
 <head>
     <%-- FIX: added responsive viewport meta tag (was missing) --%>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${pageTitle}</title>
     <jsp:include page="/views/common/bootstrap.jsp"/>

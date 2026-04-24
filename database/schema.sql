@@ -116,7 +116,8 @@ CREATE TABLE audit_log (
 INSERT INTO departments (dept_name) VALUES
   ('Human Resources'),
   ('Engineering'),
-  ('Finance');
+  ('Finance'),
+  ('Marketing');
 
 INSERT INTO leave_types (type_name, type_code, max_days_per_year, is_paid,
   carry_forward_allowed, max_carry_forward_days, requires_attachment) VALUES

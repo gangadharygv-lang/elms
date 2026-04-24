@@ -57,6 +57,50 @@
 
     <%-- ═══════════════ TAB 1 — SHOW EMPLOYEES ═══════════════ --%>
     <div class="tab-pane fade show active" id="tab-show">
+
+        <%-- ── FILTER BAR ── --%>
+        <div class="card mb-3 border-0 bg-light">
+            <div class="card-body py-2">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold mb-1">&#128269; Search</label>
+                        <input type="text" id="filterSearch" class="form-control form-control-sm"
+                               placeholder="Name, email or code..." oninput="applyFilters()">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold mb-1">Role</label>
+                        <select id="filterRole" class="form-select form-select-sm" onchange="applyFilters()">
+                            <option value="">All Roles</option>
+                            <option value="EMP">Employee</option>
+                            <option value="MGR">Manager</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold mb-1">Department</label>
+                        <select id="filterDept" class="form-select form-select-sm" onchange="applyFilters()">
+                            <option value="">All Departments</option>
+                            <c:forEach var="dept" items="${departments}">
+                                <option value="${dept.value}">${dept.value}</option>
+                            </c:forEach>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold mb-1">Status</label>
+                        <select id="filterStatus" class="form-select form-select-sm" onchange="applyFilters()">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-sm btn-outline-secondary w-100" onclick="clearFilters()">&#10005; Clear Filters</button>
+                    </div>
+                </div>
+                <div class="mt-2 text-muted small" id="filterCount"></div>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-bordered table-striped align-middle">
                 <thead class="table-dark">
@@ -70,12 +114,31 @@
                         <th></th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="employeeTableBody">
                     <c:forEach var="u" items="${users}">
-                        <tr>
-                            <td><code>${u.employeeCode}</code></td>
-                            <td>${u.fullName}</td>
-                            <td>${u.email}</td>
+                        <c:set var="rowStatus" value="inactive"/>
+                        <c:if test="${u.active}"><c:set var="rowStatus" value="active"/></c:if>
+                        <c:set var="rowDept" value="${empty u.departmentName ? '' : u.departmentName}"/>
+                        <c:choose>
+                            <c:when test="${not u.active}">
+                                <tr data-role="${u.role}"
+                                    data-dept="${rowDept}"
+                                    data-status="${rowStatus}"
+                                    data-search="${u.fullName} ${u.email} ${u.employeeCode}"
+                                    style="opacity:0.5; background:#f8f8f8;">
+                            </c:when>
+                            <c:otherwise>
+                                <tr data-role="${u.role}"
+                                    data-dept="${rowDept}"
+                                    data-status="${rowStatus}"
+                                    data-search="${u.fullName} ${u.email} ${u.employeeCode}">
+                            </c:otherwise>
+                        </c:choose>
+                            <td>
+                                <code style="${not u.active ? 'text-decoration:line-through;' : ''}">${u.employeeCode}</code>
+                            </td>
+                            <td style="${not u.active ? 'text-decoration:line-through; color:#999;' : ''}">${u.fullName}</td>
+                            <td style="${not u.active ? 'color:#aaa;' : ''}">${u.email}</td>
                             <td>
                                 <c:choose>
                                     <c:when test="${u.role == 'EMP'}">
@@ -89,11 +152,16 @@
                                     </c:otherwise>
                                 </c:choose>
                             </td>
-                            <td>${empty u.departmentName ? '&#8212;' : u.departmentName}</td>
+                            <td style="${not u.active ? 'color:#aaa;' : ''}">${empty u.departmentName ? '&mdash;' : u.departmentName}</td>
                             <td>
-                                <span class="badge ${u.active ? 'bg-success' : 'bg-danger'}">
-                                    ${u.active ? 'Active' : 'Inactive'}
-                                </span>
+                                <c:choose>
+                                    <c:when test="${u.active}">
+                                        <span class="badge bg-success">Active</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="badge bg-secondary">Dormant</span>
+                                    </c:otherwise>
+                                </c:choose>
                             </td>
                             <td>
                                 <button class="btn btn-sm btn-outline-secondary"
@@ -375,6 +443,48 @@
         var sel = document.getElementById('editUserSelect');
         sel.value = String(userId);
         loadEditCards();
+    };
+
+    /* ── FILTER LOGIC ── */
+    window.applyFilters = function () {
+        var search = document.getElementById('filterSearch').value.toLowerCase().trim();
+        var role   = document.getElementById('filterRole').value;
+        var dept   = document.getElementById('filterDept').value.toLowerCase();
+        var status = document.getElementById('filterStatus').value;
+
+        var rows  = document.querySelectorAll('#employeeTableBody tr');
+        var shown = 0;
+
+        rows.forEach(function (row) {
+            var rowSearch = (row.getAttribute('data-search') || '').toLowerCase();
+            var rowRole   = (row.getAttribute('data-role')   || '');
+            var rowDept   = (row.getAttribute('data-dept')   || '').toLowerCase();
+            var rowStatus = (row.getAttribute('data-status') || '');
+
+            var matchSearch = !search || rowSearch.includes(search);
+            var matchRole   = !role   || rowRole   === role;
+            var matchDept   = !dept   || rowDept   === dept;
+            var matchStatus = !status || rowStatus === status;
+
+            var visible = matchSearch && matchRole && matchDept && matchStatus;
+            row.style.display = visible ? '' : 'none';
+            if (visible) shown++;
+        });
+
+        var countEl = document.getElementById('filterCount');
+        if (search || role || dept || status) {
+            countEl.textContent = 'Showing ' + shown + ' of ' + rows.length + ' employees';
+        } else {
+            countEl.textContent = '';
+        }
+    };
+
+    window.clearFilters = function () {
+        document.getElementById('filterSearch').value = '';
+        document.getElementById('filterRole').value   = '';
+        document.getElementById('filterDept').value   = '';
+        document.getElementById('filterStatus').value = '';
+        applyFilters();
     };
 
 })();
