@@ -28,6 +28,8 @@ public class AdminUsersServlet extends HttpServlet {
 
         try {
             req.setAttribute("users", userDAO.findAll());
+            req.setAttribute("managers", userDAO.findManagers());
+            req.setAttribute("departments", userDAO.findAllDepartments());
 
             req.setAttribute("pageTitle", "Manage Users");
             req.setAttribute("contentPage", "/views/admin/manage-users.jsp");
@@ -63,6 +65,14 @@ public class AdminUsersServlet extends HttpServlet {
                 toggleUser(req, admin);
                 res.sendRedirect(req.getContextPath() + "/admin/users?success=status-updated");
 
+            } else if ("changeRole".equals(action)) {
+                changeRole(req, admin);
+                res.sendRedirect(req.getContextPath() + "/admin/users?success=role-updated");
+
+            } else if ("assignManager".equals(action)) {
+                assignManager(req, admin);
+                res.sendRedirect(req.getContextPath() + "/admin/users?success=manager-assigned");
+
             } else {
                 res.sendRedirect(req.getContextPath() + "/admin/users");
             }
@@ -79,14 +89,30 @@ public class AdminUsersServlet extends HttpServlet {
 
         User user = new User();
 
-        user.setEmployeeCode(req.getParameter("employeeCode"));
+        User.Role role = User.Role.valueOf(req.getParameter("role"));
+        user.setRole(role);
+
+        // Auto-generate employee code based on role: EMP#####, MGR#####, ADM#####
+        String generatedCode = userDAO.generateNextCode(role);
+        user.setEmployeeCode(generatedCode);
+
         user.setFullName(req.getParameter("fullName"));
         user.setEmail(req.getParameter("email"));
         user.setPasswordHash(
                 PasswordUtil.sha256(req.getParameter("password"))
         );
 
-        user.setRole(User.Role.valueOf(req.getParameter("role")));
+        // Department (optional)
+        String deptParam = req.getParameter("deptId");
+        if (deptParam != null && !deptParam.isBlank()) {
+            user.setDeptId(Integer.parseInt(deptParam));
+        }
+
+        // Manager assignment — only meaningful for EMP role
+        String managerParam = req.getParameter("managerId");
+        if (managerParam != null && !managerParam.isBlank()) {
+            user.setManagerId(Integer.parseInt(managerParam));
+        }
 
         int userId = userDAO.create(user);
 
@@ -163,6 +189,78 @@ public class AdminUsersServlet extends HttpServlet {
                 admin.getUserId(),
                 null,
                 "active=" + active,
+                req.getRemoteAddr()
+        );
+    }
+
+    // =========================
+    // 🔄 CHANGE ROLE
+    // =========================
+    private void changeRole(HttpServletRequest req, User admin) throws Exception {
+
+        int userId = Integer.parseInt(req.getParameter("userId"));
+
+        // Prevent admin from changing their own role
+        if (userId == admin.getUserId()) {
+            throw new ServletException("You cannot change your own role.");
+        }
+
+        User.Role newRole = User.Role.valueOf(req.getParameter("newRole"));
+
+        // Only re-generate the employee code when the role prefix actually changes
+        User existing = userDAO.findById(userId);
+        String newCode = existing.getEmployeeCode();
+
+        String currentPrefix = newCode != null && newCode.length() >= 3
+                ? newCode.substring(0, 3) : "";
+        String expectedPrefix;
+        if (newRole == User.Role.MGR) {
+            expectedPrefix = "MGR";
+        } else if (newRole == User.Role.ADMIN) {
+            expectedPrefix = "ADM";
+        } else {
+            expectedPrefix = "EMP";
+        }
+
+        if (!currentPrefix.equals(expectedPrefix)) {
+            newCode = userDAO.generateNextCode(newRole);
+        }
+
+        userDAO.updateRole(userId, newRole, newCode);
+
+        auditLogDAO.log(
+                "USER",
+                userId,
+                "ROLE_CHANGED",
+                admin.getUserId(),
+                "role=" + existing.getRole() + " | code=" + existing.getEmployeeCode(),
+                "role=" + newRole + " | code=" + newCode,
+                req.getRemoteAddr()
+        );
+    }
+
+    // =========================
+    // 👤 ASSIGN MANAGER
+    // =========================
+    private void assignManager(HttpServletRequest req, User admin) throws Exception {
+
+        int userId = Integer.parseInt(req.getParameter("userId"));
+        String managerParam = req.getParameter("managerId");
+
+        Integer managerId = (managerParam != null && !managerParam.isBlank())
+                ? Integer.parseInt(managerParam) : null;
+
+        User existing = userDAO.findById(userId);
+
+        userDAO.assignManager(userId, managerId);
+
+        auditLogDAO.log(
+                "USER",
+                userId,
+                "MANAGER_ASSIGNED",
+                admin.getUserId(),
+                "managerId=" + existing.getManagerId(),
+                "managerId=" + managerId,
                 req.getRemoteAddr()
         );
     }

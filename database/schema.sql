@@ -116,7 +116,8 @@ CREATE TABLE audit_log (
 INSERT INTO departments (dept_name) VALUES
   ('Human Resources'),
   ('Engineering'),
-  ('Finance');
+  ('Finance'),
+  ('Marketing');
 
 INSERT INTO leave_types (type_name, type_code, max_days_per_year, is_paid,
   carry_forward_allowed, max_carry_forward_days, requires_attachment) VALUES
@@ -141,6 +142,17 @@ SELECT u.user_id, lt.type_id, YEAR(CURDATE()), lt.max_days_per_year, lt.max_days
 FROM users u
 CROSS JOIN leave_types lt
 WHERE u.role IN ('EMP','MGR');
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  token_id   INT          NOT NULL AUTO_INCREMENT,
+  user_id    INT          NOT NULL,
+  token      VARCHAR(64)  NOT NULL,
+  expires_at DATETIME     NOT NULL,
+  used       TINYINT(1)   NOT NULL DEFAULT 0,
+  PRIMARY KEY (token_id),
+  UNIQUE KEY uq_token (token),
+  FOREIGN KEY (user_id) REFERENCES users(user_id)
+) ENGINE=InnoDB;
 
 INSERT INTO public_holidays (holiday_date, description, is_optional) VALUES
   ('2026-01-26', 'Republic Day', 0),

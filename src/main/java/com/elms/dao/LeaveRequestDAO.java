@@ -85,6 +85,23 @@ public class LeaveRequestDAO {
     }
 
     // =========================
+    // ALL REQUESTS FOR MANAGER
+    // =========================
+    public List<LeaveRequest> findAllForManager(int managerId) throws SQLException {
+        String sql = baseSelect() +
+                " WHERE u.manager_id = ? ORDER BY lr.applied_on DESC";
+        List<LeaveRequest> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, managerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
+            }
+        }
+        return list;
+    }
+
+    // =========================
     // ADMIN SUPPORT
     // =========================
     public int countEmployees() throws SQLException {
@@ -239,6 +256,8 @@ public class LeaveRequestDAO {
         r.setReason(rs.getString("reason"));
         r.setStatus(LeaveRequest.Status.valueOf(rs.getString("status")));
         r.setManagerRemarks(rs.getString("manager_remarks"));
+        Timestamp appliedOn = rs.getTimestamp("applied_on");
+        if (appliedOn != null) r.setAppliedOn(appliedOn.toLocalDateTime());
         r.setLeaveTypeName(rs.getString("type_name"));
         r.setLeaveTypeCode(rs.getString("type_code"));
         r.setEmployeeName(rs.getString("emp_name"));
