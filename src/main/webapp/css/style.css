@@ -5,6 +5,7 @@
 /* ---------- Layout wrapper (sidebar + main) ---------- */
 .layout {
   display: flex;
+  align-items: flex-start;   /* FIX: prevents sidebar from stretching/floating to top */
   overflow-x: hidden;        /* FIX: prevent horizontal scroll on narrow screens */
 }
 
