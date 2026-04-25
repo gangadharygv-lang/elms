@@ -1,5 +1,5 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<nav class="navbar navbar-dark bg-success px-4">
+<nav class="navbar navbar-dark bg-success px-4 d-flex justify-content-between align-items-center">
     <span class="navbar-brand fw-bold">ELMS</span>
 
     <%-- Live date & time — centre of topbar --%>
